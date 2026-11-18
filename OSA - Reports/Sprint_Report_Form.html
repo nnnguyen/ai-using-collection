@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Webyith Sprint Report Generator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
+<style>
+  :root{
+    --navy:#1E2761; --ice:#CADCFC; --grey:#F1EFE8; --red:#A32D2D; --green:#1E6B3C;
+    --amber-bg:#FFF4E0; --amber-text:#946200; --green-bg:#E6F4EA; --red-bg:#FBE9E7;
+    --text-sec:#5F5E5A; --border:#D0D7DE; --white:#fff;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:Georgia,'Times New Roman',serif; margin:0; padding:24px; background:#f4f5f7; color:#222;}
+  h1{font-family:Arial,Helvetica,sans-serif; color:var(--navy); font-size:26px; margin:0 0 4px;}
+  .subtitle{font-family:Arial,sans-serif; color:var(--text-sec); font-size:13px; margin-bottom:20px;}
+  .panel{background:#fff; border:1px solid var(--border); border-radius:8px; padding:20px 24px; margin-bottom:20px; max-width:1000px;}
+  .panel h2{font-family:Arial,sans-serif; color:var(--navy); font-size:17px; margin:0 0 14px; border-bottom:2px solid var(--ice); padding-bottom:6px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-family:Arial,sans-serif; font-weight:bold; font-size:12.5px; color:#333; margin-bottom:4px;}
+  .field input[type=text], .field input[type=date], .field textarea, .field select{
+    width:100%; padding:7px 9px; border:1px solid #ccc; border-radius:4px; font-family:Arial,sans-serif; font-size:13px;
+  }
+  .field textarea{min-height:56px; resize:vertical;}
+  .row{display:flex; gap:16px; flex-wrap:wrap;}
+  .row > .field{flex:1; min-width:180px;}
+  .hint{font-family:Arial,sans-serif; font-size:11.5px; color:var(--text-sec); margin-top:3px;}
+  .sprint-block{border:1px dashed #bbb; border-radius:6px; padding:12px 14px; margin-bottom:10px; background:#fafafa;}
+  .sprint-block .row{margin-bottom:8px;}
+  .sprint-block-title{font-family:Arial,sans-serif; font-weight:bold; font-size:12.5px; color:var(--navy); display:flex; justify-content:space-between; align-items:center;}
+  .btn{font-family:Arial,sans-serif; font-size:13px; font-weight:bold; padding:8px 16px; border-radius:5px; border:1px solid var(--navy); background:var(--navy); color:#fff; cursor:pointer;}
+  .btn.secondary{background:#fff; color:var(--navy);}
+  .btn.small{padding:4px 10px; font-size:11.5px;}
+  .btn.danger{background:#fff; color:var(--red); border-color:var(--red);}
+  .btn:disabled{opacity:0.45; cursor:not-allowed;}
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;}
+  #devChecklist{display:flex; flex-wrap:wrap; gap:8px 18px; font-family:Arial,sans-serif; font-size:13px;}
+  #devChecklist label{font-weight:normal; display:flex; align-items:center; gap:5px;}
+  .status-line{font-family:Arial,sans-serif; font-size:12.5px; color:var(--text-sec); margin-top:8px; white-space:pre-wrap;}
+  .status-line.error{color:var(--red); font-weight:bold;}
+  .status-line.ok{color:var(--green); font-weight:bold;}
+
+  /* ---------- report preview (mirrors the .docx layout) ---------- */
+  .report-shell{background:#fff; border:1px solid var(--border); border-radius:8px; padding:34px 38px; max-width:900px; margin-bottom:26px;}
+  .report-shell h1.report-title{font-family:Georgia,serif; color:var(--navy); font-size:30px; margin:0 0 6px;}
+  .report-meta{font-family:Arial,sans-serif; font-size:12.5px; margin-bottom:18px;}
+  .report-meta b{color:#111;}
+  .section-title{font-family:Georgia,serif; color:var(--navy); font-size:19px; font-weight:bold; margin:22px 0 10px; border-bottom:1px solid var(--ice); padding-bottom:4px;}
+  .subsection-title{font-family:Georgia,serif; color:var(--navy); font-size:15px; font-weight:bold; margin:16px 0 8px;}
+  table.rt{width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:11.5px; margin-bottom:8px;}
+  table.rt th{background:var(--navy); color:#fff; text-align:left; padding:6px 8px; border:1px solid var(--border);}
+  table.rt td{padding:6px 8px; border:1px solid var(--border);}
+  table.rt tr:nth-child(even) td{background:#F7F8FA;}
+  table.rt td.center, table.rt th.center{text-align:center;}
+  table.rt tr.total-row td{background:var(--ice)!important; font-weight:bold;}
+  .kpi-row{display:flex; gap:10px; margin:10px 0;}
+  .kpi-card, .stat-card{flex:1; border:1px solid var(--border); border-radius:6px; padding:14px 10px; text-align:center; font-family:Arial,sans-serif;}
+  .stat-card{background:var(--grey);}
+  .kpi-card .label, .stat-card .label{font-weight:bold; font-size:11.5px; color:var(--text-sec); margin-bottom:6px;}
+  .kpi-card .value{font-family:Georgia,serif; font-weight:bold; font-size:30px; color:var(--navy);}
+  .kpi-card .delta{font-size:10.5px; font-weight:bold; margin-top:4px;}
+  .kpi-card .caption, .stat-card .caption{font-size:10.5px; color:var(--text-sec); margin-top:4px; line-height:1.5;}
+  .kpi-card.green{background:var(--green-bg);} .kpi-card.green .value{color:var(--green);}
+  .kpi-card.amber{background:var(--amber-bg);} .kpi-card.amber .value{color:var(--amber-text);}
+  .kpi-card.red{background:var(--red-bg);} .kpi-card.red .value{color:var(--red);}
+  .health-banner{text-align:center; font-family:Arial,sans-serif; font-weight:bold; font-size:15px; padding:10px; border-radius:6px; margin:10px 0;}
+  .health-banner.green{background:var(--green-bg); color:var(--green);}
+  .health-banner.amber{background:var(--amber-bg); color:var(--amber-text);}
+  .health-banner.red{background:var(--red-bg); color:var(--red);}
+  .legend-line{font-family:Georgia,serif; font-style:italic; font-size:12px; color:var(--text-sec); margin:6px 0 4px;}
+  .chart-row{display:flex; gap:18px; flex-wrap:wrap; margin:12px 0;}
+  .chart-row canvas{max-width:100%;}
+  .chart-box{flex:1; min-width:260px; text-align:center;}
+  .trend-insights{font-family:Arial,sans-serif; font-size:12.5px; margin-top:8px;}
+  .trend-insights .ti-title{font-weight:bold; color:var(--navy); margin-bottom:4px;}
+  .no-data{font-family:Arial,sans-serif; font-style:italic; font-size:12.5px; color:var(--text-sec);}
+
+  @media print{
+    body *{visibility:hidden;}
+    .print-target, .print-target *{visibility:visible;}
+    .print-target{position:absolute; left:0; top:0; width:100%; margin:0; border:none;}
+    .btn-row, .panel{display:none!important;}
+  }
+</style>
+</head>
+<body>
+
+<h1>Webyith Sprint Report Generator</h1>
+<div class="subtitle">Chạy 100% trên trình duyệt của bạn — không tải file lên đâu cả. Chọn file Webyith-Daily-Report_*.html của sprint, điền các trường thủ công, rồi bấm "Tạo báo cáo".</div>
+
+<div class="panel">
+  <h2>1. Sprint hiện tại (bắt buộc)</h2>
+  <div class="row">
+    <div class="field"><label>Tên Sprint (vd: Sprint-20260914_20260925)</label><input type="text" id="curName" placeholder="Sprint-20260914_20260925"></div>
+    <div class="field"><label>Ngày bắt đầu</label><input type="date" id="curStart"></div>
+    <div class="field"><label>Ngày kết thúc</label><input type="date" id="curEnd"></div>
+  </div>
+  <div class="field">
+    <label>File Webyith-Daily-Report_*.html của sprint này (chọn nhiều file)</label>
+    <input type="file" id="curFiles" multiple accept=".html,.htm">
+    <div class="hint">Chỉ nhận file .html/.htm xuất trực tiếp từ Webyith DevOps report.</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>2. Các sprint trước (tùy chọn — để vẽ Trend Across Sprints)</h2>
+  <div id="prevSprintsContainer"></div>
+  <button class="btn secondary small" id="addPrevBtn" type="button">+ Thêm sprint trước</button>
+</div>
+
+<div class="panel">
+  <h2>3. Thông tin nhập tay</h2>
+  <div class="row">
+    <div class="field"><label>Status</label>
+      <select id="status"><option>Completed</option><option>Delayed</option><option>Partial</option></select>
+    </div>
+    <div class="field"><label>Submission Date</label><input type="date" id="submissionDate"></div>
+    <div class="field"><label>Prepared by</label><input type="text" id="preparedBy" value="Gerald Nguyen"></div>
+  </div>
+  <div class="field"><label>Key Highlight (để trống = None)</label><textarea id="keyHighlight"></textarea></div>
+  <div class="field"><label>Timeline Issue (để trống = None)</label><textarea id="timelineIssue"></textarea></div>
+</div>
+
+<div class="panel" id="devPanel" style="display:none;">
+  <h2>4. Chọn Developer hiển thị trong "Activity by Developer"</h2>
+  <div id="devChecklist"></div>
+  <div class="hint">Không ảnh hưởng số liệu tổng (Deployed Rate, Bug Ratio, ...) — chỉ lọc bảng/biểu đồ Activity by Developer.</div>
+</div>
+
+<div class="panel">
+  <h2>5. Loại báo cáo &amp; tạo file</h2>
+  <div class="row">
+    <div class="field"><label><input type="checkbox" id="wantFull" checked style="width:auto;"> Full Report (đầy đủ, gồm Sprint Details)</label></div>
+    <div class="field"><label><input type="checkbox" id="wantSummary" checked style="width:auto;"> Summary Report (không có Sprint Details)</label></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" id="parseBtn" type="button">Bước 1: Đọc file &amp; tính số liệu</button>
+    <button class="btn" id="generateBtn" type="button" disabled>Bước 2: Tạo báo cáo</button>
+  </div>
+  <div class="status-line" id="statusLine"></div>
+</div>
+
+<div id="fullWrap" style="display:none;">
+  <div class="btn-row">
+    <b style="font-family:Arial,sans-serif;">Full Report</b>
+    <button class="btn secondary small" onclick="printReport('fullReport')" type="button">In / Lưu PDF</button>
+    <button class="btn secondary small" onclick="exportDocx(true)" type="button">Xuất .docx</button>
+  </div>
+  <div class="report-shell" id="fullReport"></div>
+</div>
+
+<div id="summaryWrap" style="display:none;">
+  <div class="btn-row">
+    <b style="font-family:Arial,sans-serif;">Summary Report</b>
+    <button class="btn secondary small" onclick="printReport('summaryReport')" type="button">In / Lưu PDF</button>
+    <button class="btn secondary small" onclick="exportDocx(false)" type="button">Xuất .docx</button>
+  </div>
+  <div class="report-shell" id="summaryReport"></div>
+</div>
+
+<script>
+"use strict";
+
+/* ================================================================
+   PART 1 — ported verbatim (logic-equivalent) from sprint_engine.js
+   ================================================================ */
+const OPEN_STATES = ["New", "Active", "In Review"];
+const CLOSED_STATES = ["Resolved", "Closed"];
+
+function parseWorkItemsFromHtml(rawHtml){
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(rawHtml || "", "text/html");
+
+  const bodyText = doc.body ? doc.body.textContent : "";
+  const genMatch = bodyText.match(/Generated\s+(\d{4}-\d{2}-\d{2})/);
+  const generatedDate = genMatch ? genMatch[1] : null;
+
+  const items = [];
+  const tables = Array.from(doc.querySelectorAll("table"));
+  for (const table of tables){
+    const rows = Array.from(table.querySelectorAll("tr"));
+    if (!rows.length) continue;
+    const ths = Array.from(rows[0].querySelectorAll("th"));
+    if (!ths.length || ths[0].textContent.trim() !== "Work Item") continue;
+
+    const headers = ths.map(th => th.textContent.trim());
+    const ncols = headers.length;
+    const iType = headers.indexOf("Type");
+    const iState = headers.indexOf("State");
+    const iAssignee = headers.indexOf("Assigned To");
+    const iStart = headers.indexOf("Start");
+    const iTarget = headers.indexOf("Target");
+    const iChanged = headers.indexOf("Changed");
+    const iEffort = headers.indexOf("Effort");
+
+    const levelStack = {};
+    for (let i = 1; i < rows.length; i++){
+      const tds = Array.from(rows[i].querySelectorAll("td"));
+      if (tds.length !== ncols) continue;
+
+      const firstTd = tds[0];
+      const rawText = firstTd.textContent || "";
+      const idMatch = rawText.match(/#(\d{3,6})/);
+      if (!idMatch) continue;
+      const id = idMatch[1];
+
+      const titleSpan = firstTd.querySelector("span");
+      let title = (titleSpan ? titleSpan.textContent : rawText).trim();
+      title = title.replace(/^[^\w#]*#\d{3,6}:\s*/, "").replace(/\s+/g, " ");
+      if (!title) continue;
+
+      const style = firstTd.getAttribute("style") || "";
+      const pm = style.match(/padding-left:\s*(\d+)px/);
+      const level = pm ? Math.round((parseInt(pm[1], 10) - 10) / 22) : 0;
+      const parent = level > 0 ? (levelStack[level - 1] || null) : null;
+      levelStack[level] = id;
+      Object.keys(levelStack).forEach(k => { if (parseInt(k, 10) > level) delete levelStack[k]; });
+
+      const cellText = (idx) => idx >= 0 ? (tds[idx].textContent || "").trim() : "";
+      const grabDate = (idx) => {
+        const raw = cellText(idx);
+        const dm = raw.match(/(\d{4}-\d{2}-\d{2})/);
+        const tm = raw.match(/(\d{2}:\d{2})/);
+        return { date: dm ? dm[1] : null, time: tm ? tm[1] : null };
+      };
+      const startD = grabDate(iStart);
+      const targetD = grabDate(iTarget);
+      const changedD = grabDate(iChanged);
+      let effort = null;
+      const effortRaw = cellText(iEffort);
+      const em = effortRaw.match(/(\d+(?:\.\d+)?)/);
+      if (em) effort = parseFloat(em[1]);
+
+      items.push({
+        id, title,
+        type: cellText(iType), state: cellText(iState), assignee: cellText(iAssignee),
+        start: startD.date, target: targetD.date, changed: changedD.date, changedTime: changedD.time,
+        effort, parent, generatedDate,
+        completeness: [startD.date, targetD.date, changedD.date, effort].filter(v => v !== null && v !== undefined).length,
+        changedSortKey: changedD.date ? changedD.date + "T" + (changedD.time || "00:00") : "0000-00-00T00:00"
+      });
+    }
+  }
+  return { generatedDate, items };
+}
+
+function mergeAllItems(files){
+  const byId = new Map();
+  files.forEach(f => {
+    (f.items || []).forEach(it => {
+      const existing = byId.get(it.id);
+      if (!existing) { byId.set(it.id, it); return; }
+      if (it.changedSortKey > existing.changedSortKey) byId.set(it.id, it);
+      else if (it.changedSortKey === existing.changedSortKey && it.completeness >= existing.completeness) byId.set(it.id, it);
+    });
+  });
+  return [...byId.values()];
+}
+
+function computeStats(items, refDate){
+  const total = items.length;
+  const open = items.filter(i => OPEN_STATES.includes(i.state)).length;
+  const closed = items.filter(i => CLOSED_STATES.includes(i.state)).length;
+  const deployedCount = items.filter(i => i.state === "Closed").length;
+  const pendingDeploymentCount = items.filter(i => i.state === "Resolved").length;
+  const notStartedCount = items.filter(i => i.state === "New").length;
+  const inProgressCount = items.filter(i => i.state === "Active" || i.state === "In Review").length;
+  const openBugs = items.filter(i => OPEN_STATES.includes(i.state) && i.type === "Bug").length;
+  const totalEffort = items.reduce((s,i)=> s + (typeof i.effort === "number" ? i.effort : 0), 0);
+  const overdue = items.filter(i => !CLOSED_STATES.includes(i.state) && i.target && refDate && i.target < refDate);
+  const byType = {};
+  items.forEach(i => { const t = i.type || "Unknown"; byType[t] = (byType[t]||0)+1; });
+
+  const featuresCompleted = items.filter(i => CLOSED_STATES.includes(i.state) && (i.type === "Feature" || i.type === "User Story")).length;
+  const techDebtCompleted = items.filter(i => CLOSED_STATES.includes(i.state) && i.type === "Issue").length;
+  const bugsFixed = items.filter(i => CLOSED_STATES.includes(i.state) && i.type === "Bug").length;
+  const featuresCompletedClosed = items.filter(i => i.state === "Closed" && (i.type === "Feature" || i.type === "User Story")).length;
+  const featuresCompletedResolved = items.filter(i => i.state === "Resolved" && (i.type === "Feature" || i.type === "User Story")).length;
+  const techDebtCompletedClosed = items.filter(i => i.state === "Closed" && i.type === "Issue").length;
+  const techDebtCompletedResolved = items.filter(i => i.state === "Resolved" && i.type === "Issue").length;
+  const bugsFixedClosed = items.filter(i => i.state === "Closed" && i.type === "Bug").length;
+  const bugsFixedResolved = items.filter(i => i.state === "Resolved" && i.type === "Bug").length;
+
+  const hasParentData = items.some(i => i.parent);
+  let bugRatioDenominator, bugRatioMode;
+  let totalBugs = null, totalFeatures = null, totalTasks = null, totalUserStories = null, totalIssues = null;
+  if (hasParentData){
+    const childTypesByParent = {};
+    items.forEach(i => {
+      if (i.parent){
+        if (!childTypesByParent[i.parent]) childTypesByParent[i.parent] = new Set();
+        childTypesByParent[i.parent].add(i.type);
+      }
+    });
+    const hasUserStoryOrIssueChild = id => { const s = childTypesByParent[id]; return !!s && (s.has("User Story") || s.has("Issue")); };
+
+    totalBugs = items.filter(i => i.type === "Bug").length;
+    totalFeatures = items.filter(i => i.type === "Feature" && !hasUserStoryOrIssueChild(i.id)).length;
+    totalTasks = 0;
+    totalUserStories = items.filter(i => i.type === "User Story").length;
+    totalIssues = items.filter(i => i.type === "Issue").length;
+    bugRatioDenominator = totalFeatures + totalTasks + totalUserStories + totalIssues;
+    bugRatioMode = "structural";
+  } else {
+    totalBugs = openBugs;
+    bugRatioDenominator = open;
+    bugRatioMode = "simple";
+  }
+  const bugRatioNumerator = bugRatioMode === "structural" ? totalBugs : openBugs;
+  const bugRatio = bugRatioDenominator > 0 ? Math.round((bugRatioNumerator/bugRatioDenominator)*100) : 0;
+
+  return {
+    total, open, closed, deployedCount, pendingDeploymentCount, notStartedCount, inProgressCount, bugs: openBugs, bugRatio, bugRatioMode, bugRatioDenominator,
+    totalBugs, totalFeatures, totalTasks, totalUserStories, totalIssues,
+    totalEffort, overdue, byType,
+    featuresCompleted, techDebtCompleted, bugsFixed,
+    featuresCompletedClosed, featuresCompletedResolved,
+    techDebtCompletedClosed, techDebtCompletedResolved,
+    bugsFixedClosed, bugsFixedResolved
+  };
+}
+
+function computeDeveloperActivity(items, assignees){
+  return assignees.map(name => {
+    const mine = items.filter(i => i.assignee === name);
+    return {
+      name: name.replace(" - ONESECURE",""),
+      active: mine.filter(i => OPEN_STATES.includes(i.state)).length,
+      resolved: mine.filter(i => i.state === "Resolved").length,
+      closed: mine.filter(i => i.state === "Closed").length,
+      effort: mine.reduce((s,i)=> s + (typeof i.effort === "number" ? i.effort : 0), 0)
+    };
+  }).filter(d => d.active + d.resolved + d.closed > 0);
+}
+
+function ragCompletionRate(pct){ return pct >= 80 ? "green" : pct >= 50 ? "amber" : "red"; }
+function ragBugRatio(pct){ return pct < 30 ? "green" : pct <= 50 ? "amber" : "red"; }
+const RAG_RANK = { green: 0, amber: 1, red: 2 };
+function worstRag(...rags){ return rags.reduce((a, b) => (RAG_RANK[b] > RAG_RANK[a] ? b : a)); }
+const RAG_LABEL = { green: "ON TRACK", amber: "NEEDS ATTENTION", red: "AT RISK" };
+
+function deltaText(current, previous, opts = {}){
+  const { unit = "", higherIsBetter = true, decimals = 0 } = opts;
+  if (previous === undefined || previous === null) return { text: "No prior sprint to compare", cls: "" };
+  const prevStr = previous.toFixed(decimals) + unit;
+  const diff = current - previous;
+  if (Math.abs(diff) < Math.pow(10, -decimals) / 2) return { text: "No change vs last sprint (" + prevStr + ")", cls: "" };
+  const good = higherIsBetter ? diff > 0 : diff < 0;
+  const arrow = diff > 0 ? "▲" : "▼";
+  const sign = diff > 0 ? "+" : "";
+  return { text: arrow + " " + sign + diff.toFixed(decimals) + unit + " vs last sprint (was " + prevStr + ")", cls: good ? "good" : "bad" };
+}
+
+function computeTrendInsights(trendSeries){
+  if (!trendSeries || trendSeries.length < 3) return null;
+  const first = trendSeries[0];
+  const last = trendSeries[trendSeries.length - 1];
+  const n = trendSeries.length;
+
+  const depDelta = last.deployedRate - first.deployedRate;
+  const depDir = depDelta > 0 ? "improved" : depDelta < 0 ? "declined" : "held steady";
+  const currentDepRag = ragCompletionRate(last.deployedRate);
+  let trailDep = 1;
+  for (let i = trendSeries.length - 2; i >= 0; i--){
+    if (ragCompletionRate(trendSeries[i].deployedRate) === currentDepRag) trailDep++; else break;
+  }
+  const depBandLabel = currentDepRag === "green" ? "Green (≥80%)" : currentDepRag === "amber" ? "Amber (50-79%)" : "Red (<50%)";
+  let depSentence = "Deployed Rate has " + depDir + " from " + first.deployedRate + "% to " + last.deployedRate + "% over the last " + n + " sprints";
+  if (trailDep >= 2) depSentence += ", holding in the " + depBandLabel + " band for " + trailDep + " sprints in a row";
+  depSentence += ".";
+
+  const bugDelta = last.bugRatio - first.bugRatio;
+  const bugDir = bugDelta < 0 ? "improved" : bugDelta > 0 ? "worsened" : "held steady";
+  let worst = null;
+  for (let i = 1; i < trendSeries.length; i++){
+    const diff = trendSeries[i].bugRatio - trendSeries[i - 1].bugRatio;
+    if (diff > 0 && (!worst || diff > worst.diff)) worst = { diff, folder: trendSeries[i].folder, value: trendSeries[i].bugRatio };
+  }
+  let bugSentence = "Bug Ratio has " + bugDir + " overall, from " + first.bugRatio + "% to " + last.bugRatio + "%";
+  if (worst && worst.diff >= 10 && worst.folder !== last.folder){
+    bugSentence += ", though it spiked back up to " + worst.value + "% in " + worst.folder + " before improving again";
+  }
+  bugSentence += ".";
+
+  return { depSentence, bugSentence };
+}
+
+/* ================================================================
+   PART 2 — UI: sprint blocks (current + previous, for Trend)
+   ================================================================ */
+let prevBlockSeq = 0;
+function addPrevSprintBlock(){
+  prevBlockSeq++;
+  const id = "prev" + prevBlockSeq;
+  const wrap = document.createElement("div");
+  wrap.className = "sprint-block";
+  wrap.id = "block_" + id;
+  wrap.innerHTML =
+    '<div class="sprint-block-title">Sprint trước #' + prevBlockSeq + ' <button class="btn danger small" type="button" onclick="removePrevBlock(\'' + id + '\')">Xóa</button></div>' +
+    '<div class="row">' +
+      '<div class="field"><label>Tên Sprint</label><input type="text" id="name_' + id + '" placeholder="Sprint-20260831_20260911"></div>' +
+      '<div class="field"><label>Ngày bắt đầu</label><input type="date" id="start_' + id + '"></div>' +
+      '<div class="field"><label>Ngày kết thúc</label><input type="date" id="end_' + id + '"></div>' +
+    '</div>' +
+    '<div class="field"><label>File .html của sprint này</label><input type="file" id="files_' + id + '" multiple accept=".html,.htm"></div>';
+  document.getElementById("prevSprintsContainer").appendChild(wrap);
+}
+function removePrevBlock(id){
+  const el = document.getElementById("block_" + id);
+  if (el) el.remove();
+}
+document.getElementById("addPrevBtn").addEventListener("click", addPrevSprintBlock);
+
+function getPrevBlockIds(){
+  return Array.from(document.querySelectorAll("#prevSprintsContainer .sprint-block")).map(el => el.id.replace("block_",""));
+}
+
+/* ================================================================
+   PART 3 — parsing pipeline
+   ================================================================ */
+function readFileAsText(file){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsText(file);
+  });
+}
+
+async function parseFileList(fileList){
+  const files = [];
+  for (const f of Array.from(fileList || [])){
+    try{
+      const text = await readFileAsText(f);
+      const { generatedDate, items } = parseWorkItemsFromHtml(text);
+      files.push({ file: f.name, generatedDate, items, status: items.length ? "ok" : "warn" });
+    } catch(e){
+      files.push({ file: f.name, generatedDate: null, items: [], status: "warn", warning: String(e) });
+    }
+  }
+  return files;
+}
+
+// Parses one sprint "block" (current or previous) into a full stats record, mirroring
+// sprint_engine.js's ingestFolderData()+computeStats()+computeDeveloperActivity().
+async function buildSprintRecord(name, start, end, fileList){
+  const files = await parseFileList(fileList);
+  const allItems = mergeAllItems(files);
+  const generatedDates = files.map(f => f.generatedDate).filter(Boolean).sort();
+  const todayIso = new Date().toISOString().slice(0,10);
+  const refDate = generatedDates.length ? generatedDates[generatedDates.length-1] : todayIso;
+  const stats = computeStats(allItems, refDate);
+  const assignees = [...new Set(allItems.map(i => i.assignee).filter(Boolean))];
+  const activity = computeDeveloperActivity(allItems, assignees);
+  return {
+    name: name || "Sprint", start: start || null, end: end || null,
+    items: allItems, stats, activity, filesParsed: files.length,
+    generatedDateRange: generatedDates.length ? { min: generatedDates[0], max: generatedDates[generatedDates.length-1] } : null
+  };
+}
+
+function toTrendEntry(rec){
+  const total = rec.stats.total;
+  const deployedRate = total > 0 ? Math.round((rec.stats.deployedCount/total)*100) : 0;
+  const carriedOverCount = rec.stats.pendingDeploymentCount + rec.stats.open;
+  const carriedOverRate = total > 0 ? Math.round((carriedOverCount/total)*100) : 0;
+  const totalCompleted = rec.stats.featuresCompleted + rec.stats.techDebtCompleted + rec.stats.bugsFixed;
+  return {
+    folder: rec.name, start: rec.start, end: rec.end,
+    total, closed: rec.stats.closed, deployedRate, carriedOverRate, bugRatio: rec.stats.bugRatio,
+    totalCompleted, featuresCompleted: rec.stats.featuresCompleted, techDebtCompleted: rec.stats.techDebtCompleted,
+    bugsFixed: rec.stats.bugsFixed
+  };
+}
+
+let STATE = { current: null, previous: [], trendSeries: null, previousTrendEntry: null };
+
+function setStatus(msg, cls){
+  const el = document.getElementById("statusLine");
+  el.textContent = msg;
+  el.className = "status-line" + (cls ? " " + cls : "");
+}
+
+document.getElementById("parseBtn").addEventListener("click", async () => {
+  const curName = document.getElementById("curName").value.trim() || "Sprint";
+  const curStart = document.getElementById("curStart").value || null;
+  const curEnd = document.getElementById("curEnd").value || null;
+  const curFiles = document.getElementById("curFiles").files;
+  if (!curFiles || !curFiles.length){
+    setStatus("Vui lòng chọn ít nhất 1 file .html cho sprint hiện tại.", "error");
+    return;
+  }
+  setStatus("Đang đọc và tính toán...");
+  document.getElementById("parseBtn").disabled = true;
+  try{
+    const current = await buildSprintRecord(curName, curStart, curEnd, curFiles);
+    if (!current.items.length){
+      setStatus("Không tìm thấy work item nào trong các file đã chọn — kiểm tra lại đúng là file Webyith Daily Report .html chưa.", "error");
+      document.getElementById("parseBtn").disabled = false;
+      return;
+    }
+
+    const previous = [];
+    for (const id of getPrevBlockIds()){
+      const name = document.getElementById("name_" + id).value.trim() || ("Sprint (" + id + ")");
+      const start = document.getElementById("start_" + id).value || null;
+      const end = document.getElementById("end_" + id).value || null;
+      const fl = document.getElementById("files_" + id).files;
+      if (!fl || !fl.length) continue;
+      const rec = await buildSprintRecord(name, start, end, fl);
+      if (rec.items.length) previous.push(rec);
+    }
+
+    // Chronological order (oldest first) for the trend series, by start date when available,
+    // otherwise fall back to the order blocks were added, with current sprint always last.
+    const all = [...previous, current];
+    all.sort((a,b) => {
+      const as = a.start || "9999-99-99", bs = b.start || "9999-99-99";
+      if (as !== bs) return as < bs ? -1 : 1;
+      return a === current ? 1 : (b === current ? -1 : 0);
+    });
+    const trendSeries = all.map(toTrendEntry);
+    const curIdx = all.indexOf(current);
+    const previousTrendEntry = curIdx > 0 ? trendSeries[curIdx - 1] : null;
+
+    STATE = { current, previous, trendSeries, previousTrendEntry };
+
+    // Populate developer checklist from the CURRENT sprint's activity.
+    const devPanel = document.getElementById("devPanel");
+    const devChecklist = document.getElementById("devChecklist");
+    devChecklist.innerHTML = "";
+    if (current.activity.length){
+      devPanel.style.display = "";
+      current.activity.forEach(d => {
+        const lbl = document.createElement("label");
+        lbl.innerHTML = '<input type="checkbox" class="devchk" value="' + d.name.replace(/"/g,"&quot;") + '" checked> ' + d.name;
+        devChecklist.appendChild(lbl);
+      });
+    } else {
+      devPanel.style.display = "none";
+    }
+
+    if (!document.getElementById("submissionDate").value){
+      document.getElementById("submissionDate").value = new Date().toISOString().slice(0,10);
+    }
+
+    setStatus(
+      "Đã đọc " + current.filesParsed + " file, " + current.items.length + " work item (sprint hiện tại)." +
+      (previous.length ? " + " + previous.length + " sprint trước cho Trend." : " (Chưa có sprint trước nào cho Trend.)"),
+      "ok"
+    );
+    document.getElementById("generateBtn").disabled = false;
+  } catch(err){
+    console.error(err);
+    setStatus("Lỗi khi đọc file: " + err.message, "error");
+  } finally {
+    document.getElementById("parseBtn").disabled = false;
+  }
+});
+
+/* ================================================================
+   PART 4 — HTML report rendering (also used as the source for chart
+   canvases that get embedded into the .docx export)
+   ================================================================ */
+function esc(s){ return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function filteredActivity(){
+  const checked = Array.from(document.querySelectorAll(".devchk:checked")).map(c => c.value);
+  if (!checked.length) return STATE.current.activity;
+  const set = new Set(checked);
+  const f = STATE.current.activity.filter(d => set.has(d.name));
+  return f.length ? f : STATE.current.activity;
+}
+
+function computeDerived(){
+  const stats = STATE.current.stats;
+  const total = stats.total;
+  const deployedRate = total > 0 ? Math.round((stats.deployedCount/total)*100) : 0;
+  const carriedOverCount = stats.pendingDeploymentCount + stats.open;
+  const carriedOverRate = total > 0 ? Math.round((carriedOverCount/total)*100) : 0;
+  const pendingDeploymentPct = total > 0 ? Math.round((stats.pendingDeploymentCount/total)*100) : 0;
+  const inProgressPct = total > 0 ? Math.round((stats.inProgressCount/total)*100) : 0;
+  const notStartedPct = total > 0 ? Math.round((stats.notStartedCount/total)*100) : 0;
+  const ragDeployed = ragCompletionRate(deployedRate);
+  const ragBug = ragBugRatio(stats.bugRatio);
+  const overallRag = worstRag(ragDeployed, ragBug);
+  const prev = STATE.previousTrendEntry;
+  const deltaDeployed = prev ? deltaText(deployedRate, prev.deployedRate, { unit:"%", higherIsBetter:true }) : null;
+  const deltaBugRatio = prev ? deltaText(stats.bugRatio, prev.bugRatio, { unit:"%", higherIsBetter:false }) : null;
+  return { deployedRate, carriedOverCount, carriedOverRate, pendingDeploymentPct, inProgressPct, notStartedPct, ragDeployed, ragBug, overallRag, deltaDeployed, deltaBugRatio };
+}
+
+let chartSeq = 0;
+function uid(prefix){ chartSeq++; return prefix + chartSeq; }
+
+// Builds the full HTML for one report variant into `container`. Returns the list of {id, kind}
+// canvases created, so the caller can snapshot them (toDataURL) for the .docx export afterward.
+function renderReport(container, includeFull){
+  container.innerHTML = "";
+  const rec = STATE.current;
+  const stats = rec.stats;
+  const d = computeDerived();
+  const status = document.getElementById("status").value;
+  const keyHighlight = document.getElementById("keyHighlight").value.trim() || "None";
+  const timelineIssue = document.getElementById("timelineIssue").value.trim() || "None";
+  const submissionDate = document.getElementById("submissionDate").value || new Date().toISOString().slice(0,10);
+  const preparedBy = document.getElementById("preparedBy").value.trim() || "Gerald Nguyen";
+  const period = (rec.start || "—") + " – " + (rec.end || "—");
+  const canvases = [];
+
+  let html = "";
+  html += '<h1 class="report-title">' + (includeFull ? "Sprint Report" : "Sprint Summary") + '</h1>';
+  html += '<div class="report-meta"><b>Reporting Period:</b> ' + esc(period) +
+          '&nbsp;&nbsp;&nbsp;<b>Prepared by:</b> ' + esc(preparedBy) +
+          '&nbsp;&nbsp;&nbsp;<b>Submission Date:</b> ' + esc(submissionDate) + '</div>';
+
+  html += '<div class="section-title">Sprint Overview</div>';
+  html += '<table class="rt"><tr><th>Sprint</th><th>Sprint Period</th><th>Status</th></tr>' +
+          '<tr><td><b>' + esc(rec.name) + '</b></td><td>' + esc(period) + '</td><td>' + esc(status) + '</td></tr>' +
+          '<tr><td><b>Key Highlight:</b></td><td colspan="2">' + esc(keyHighlight) + '</td></tr>' +
+          '<tr><td><b>Timeline Issue:</b></td><td colspan="2">' + esc(timelineIssue) + '</td></tr></table>';
+
+  html += '<div class="section-title">Sprint Summary</div>';
+  html += '<div class="subsection-title">1. Executive Summary</div>';
+  html += '<div class="health-banner ' + d.overallRag + '">SPRINT HEALTH: ' + RAG_LABEL[d.overallRag] + '</div>';
+  html += '<div class="kpi-row">';
+  html += '<div class="kpi-card ' + d.ragDeployed + '"><div class="label">Deployed to Production</div><div class="value">' + d.deployedRate + '%</div>' +
+          (d.deltaDeployed ? '<div class="delta" style="color:' + (d.deltaDeployed.cls==="good"?"#1E6B3C":d.deltaDeployed.cls==="bad"?"#A32D2D":"#5F5E5A") + '">' + esc(d.deltaDeployed.text) + '</div>' : '') +
+          '<div class="caption">' + stats.deployedCount + ' ticket(s) are Closed, deployed to production</div></div>';
+  html += '<div class="stat-card"><div class="label">Carried Over to Next Sprint</div><div class="value" style="color:#1E2761;">' + d.carriedOverRate + '%</div>' +
+          '<div class="caption"><b style="color:#1E2761;">' + d.carriedOverCount + ' ticket(s) not yet Closed</b><br>' +
+          'Pending Deployment (Resolved): <b>' + stats.pendingDeploymentCount + ' tickets - ' + d.pendingDeploymentPct + '%</b><br>' +
+          'In Progress (Active / In Review): <b>' + stats.inProgressCount + ' tickets - ' + d.inProgressPct + '%</b><br>' +
+          'Not Started (New): <b>' + stats.notStartedCount + ' tickets - ' + d.notStartedPct + '%</b></div></div>';
+  html += '<div class="kpi-card ' + d.ragBug + '"><div class="label">Bug Ratio</div><div class="value">' + stats.bugRatio + '%</div>' +
+          (d.deltaBugRatio ? '<div class="delta" style="color:' + (d.deltaBugRatio.cls==="good"?"#1E6B3C":d.deltaBugRatio.cls==="bad"?"#A32D2D":"#5F5E5A") + '">' + esc(d.deltaBugRatio.text) + '</div>' : '') +
+          '</div>';
+  html += '</div>';
+
+  const completedRows = [
+    { label:"Features Completed", closed:stats.featuresCompletedClosed, resolved:stats.featuresCompletedResolved },
+    { label:"Technical Debts Completed", closed:stats.techDebtCompletedClosed, resolved:stats.techDebtCompletedResolved },
+    { label:"Bugs Fixed", closed:stats.bugsFixedClosed, resolved:stats.bugsFixedResolved },
+  ];
+  const totClosed = completedRows.reduce((s,r)=>s+r.closed,0);
+  const totResolved = completedRows.reduce((s,r)=>s+r.resolved,0);
+  html += '<table class="rt"><tr><th>Completed Work (by Type)</th><th class="center">Closed</th><th class="center">Resolved</th><th class="center">Total</th></tr>';
+  completedRows.forEach(r => {
+    html += '<tr><td><b>' + esc(r.label) + '</b></td><td class="center">' + r.closed + '</td><td class="center">' + r.resolved + '</td><td class="center">' + (r.closed+r.resolved) + '</td></tr>';
+  });
+  html += '<tr class="total-row"><td>Total</td><td class="center">' + totClosed + '</td><td class="center">' + totResolved + '</td><td class="center">' + (totClosed+totResolved) + '</td></tr></table>';
+  html += '<div class="legend-line">Closed = deployed to production. Resolved = completed on staging, awaiting deploy approval.</div>';
+
+  const byTypeCanvasId = uid("byType");
+  const openClosedCanvasId = uid("openClosed");
+  html += '<div class="chart-row">' +
+          '<div class="chart-box"><canvas id="' + byTypeCanvasId + '" width="360" height="240"></canvas></div>' +
+          '<div class="chart-box"><canvas id="' + openClosedCanvasId + '" width="320" height="240"></canvas></div>' +
+          '</div>';
+  canvases.push({ id: byTypeCanvasId, kind: "byType" }, { id: openClosedCanvasId, kind: "openClosed" });
+
+  html += '<div class="subsection-title">2. Activity by Developer</div>';
+  const activity = filteredActivity();
+  const workloadCanvasId = uid("workload");
+  if (activity.length){
+    html += '<div class="chart-row"><div class="chart-box" style="flex:1 1 100%;"><canvas id="' + workloadCanvasId + '" height="220"></canvas></div></div>';
+    canvases.push({ id: workloadCanvasId, kind: "workload" });
+    html += '<table class="rt"><tr><th>Developer</th><th class="center">Active</th><th class="center">Resolved</th><th class="center">Closed</th><th class="center">Effort</th></tr>';
+    let tA=0,tR=0,tC=0,tE=0;
+    activity.forEach(dv => {
+      tA+=dv.active; tR+=dv.resolved; tC+=dv.closed; tE+=dv.effort;
+      html += '<tr><td><b>' + esc(dv.name) + '</b></td><td class="center">' + dv.active + '</td><td class="center">' + dv.resolved + '</td><td class="center">' + dv.closed + '</td><td class="center">' + dv.effort + '</td></tr>';
+    });
+    html += '<tr class="total-row"><td>Totals</td><td class="center">' + tA + '</td><td class="center">' + tR + '</td><td class="center">' + tC + '</td><td class="center">' + tE + '</td></tr></table>';
+  } else {
+    html += '<div class="no-data">No activity for the selected assignees in this period.</div>';
+  }
+
+  html += '<div class="subsection-title">3. Trend Across Sprints</div>';
+  const trendSeries = STATE.trendSeries || [];
+  let trendCanvasId = null;
+  if (trendSeries.length < 2){
+    html += '<div class="no-data">Not enough sprint history yet to chart a trend (need at least 2 sprints).</div>';
+  } else {
+    html += '<div class="legend-line">Velocity, deployed rate, and bug ratio across all ' + trendSeries.length + ' sprints on record.</div>';
+    trendCanvasId = uid("trend");
+    html += '<div class="chart-row"><div class="chart-box" style="flex:1 1 100%;"><canvas id="' + trendCanvasId + '" height="240"></canvas></div></div>';
+    canvases.push({ id: trendCanvasId, kind: "trend" });
+    const insights = computeTrendInsights(trendSeries);
+    if (insights){
+      html += '<div class="trend-insights"><div class="ti-title">Trend Insights</div>' +
+              '<div>' + esc(insights.depSentence) + '</div>' +
+              '<div>' + esc(insights.bugSentence) + '</div></div>';
+    }
+  }
+
+  if (includeFull){
+    html += '<div class="section-title">Sprint Details</div>';
+    const overdue = stats.overdue || [];
+    html += '<div class="subsection-title">1. Overdue Tasks (' + overdue.length + ')</div>';
+    html += workItemTableHtml(overdue);
+    const activeItems = rec.items.filter(i => OPEN_STATES.includes(i.state));
+    html += '<div class="subsection-title">2. Active Work Items (' + activeItems.length + ')</div>';
+    html += workItemTableHtml(activeItems);
+    const completedItems = rec.items.filter(i => CLOSED_STATES.includes(i.state));
+    html += '<div class="subsection-title">3. Completed Work Items (' + completedItems.length + ')</div>';
+    html += workItemTableHtml(completedItems);
+  }
+
+  container.innerHTML = html;
+
+  // Now that the canvases exist in the DOM, draw the charts (animation:false so toDataURL right
+  // after creation captures the fully-painted frame, needed for the .docx export snapshot).
+  canvases.forEach(c => drawChart(c.id, c.kind, stats, activity, trendSeries));
+
+  return { canvases, derived: d, completedRows, totClosed, totResolved, activity, trendSeries };
+}
+
+function workItemTableHtml(items){
+  if (!items.length) return '<div class="no-data">No work items in this category for the selected filters.</div>';
+  const sorted = items.slice().sort((a,b)=> a.id > b.id ? 1 : -1);
+  let html = '<table class="rt"><tr><th>Work Item</th><th>Type</th><th>State</th><th>Assigned To</th><th>Start</th><th>Target</th><th>Changed</th><th class="center">Effort</th></tr>';
+  sorted.forEach(it => {
+    const assignee = it.assignee ? it.assignee.replace(" - ONESECURE","") : "-";
+    const changed = it.changed ? (it.changed + (it.changedTime ? " " + it.changedTime : "")) : "-";
+    html += '<tr><td><b>#' + esc(it.id) + ': ' + esc(it.title) + '</b></td><td>' + esc(it.type||"-") + '</td><td>' + esc(it.state||"-") + '</td><td>' + esc(assignee) + '</td><td>' + esc(it.start||"-") + '</td><td>' + esc(it.target||"-") + '</td><td>' + esc(changed) + '</td><td class="center">' + (typeof it.effort === "number" ? it.effort : "-") + '</td></tr>';
+  });
+  html += '</table>';
+  return html;
+}
+
+const CHART_PALETTE = ["#5B4FA3","#3B82C4","#C48A1E","#C4507A","#1E6B3C","#A32D2D","#5F5E5A"];
+function drawChart(canvasId, kind, stats, activity, trendSeries){
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  if (kind === "byType"){
+    const labels = Object.keys(stats.byType);
+    const values = labels.map(l => stats.byType[l]);
+    new Chart(ctx, { type:"doughnut", data:{ labels, datasets:[{ data:values, backgroundColor: labels.map((_,i)=>CHART_PALETTE[i%CHART_PALETTE.length]) }] },
+      options:{ animation:false, plugins:{ title:{ display:true, text:"Work Items by Type" }, legend:{ position:"right", labels:{ font:{size:10} } } } } });
+  } else if (kind === "openClosed"){
+    new Chart(ctx, { type:"doughnut", data:{ labels:["Open","Closed"], datasets:[{ data:[stats.open, stats.closed], backgroundColor:["#3B82C4","#1E6B3C"] }] },
+      options:{ animation:false, plugins:{ title:{ display:true, text:"Open vs Closed" } } } });
+  } else if (kind === "workload"){
+    const labels = activity.map(a=>a.name);
+    new Chart(ctx, { type:"bar", data:{ labels, datasets:[
+        { label:"Active", data:activity.map(a=>a.active), backgroundColor:"#3B82C4", stack:"s" },
+        { label:"Resolved", data:activity.map(a=>a.resolved), backgroundColor:"#C48A1E", stack:"s" },
+        { label:"Closed", data:activity.map(a=>a.closed), backgroundColor:"#1E6B3C", stack:"s" },
+      ] },
+      options:{ animation:false, plugins:{ title:{ display:true, text:"Workload by Developer (Active / Resolved / Closed)" } }, scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true } } } });
+  } else if (kind === "trend"){
+    const labels = trendSeries.map(s => s.folder);
+    new Chart(ctx, { data:{ labels, datasets:[
+        { type:"bar", label:"Work items completed", data:trendSeries.map(s=>s.totalCompleted), backgroundColor:"#3B82C4", yAxisID:"y" },
+        { type:"line", label:"Deployed rate (%)", data:trendSeries.map(s=>s.deployedRate), borderColor:"#1E2761", backgroundColor:"#1E2761", yAxisID:"y1", tension:0.25 },
+        { type:"line", label:"Bug ratio (%)", data:trendSeries.map(s=>s.bugRatio), borderColor:"#A32D2D", backgroundColor:"#A32D2D", yAxisID:"y1", tension:0.25 },
+      ] },
+      options:{ animation:false, plugins:{ title:{ display:true, text:"Velocity, Deployed Rate & Bug Ratio by Sprint" } },
+        scales:{ y:{ type:"linear", position:"left", title:{display:true,text:"Items completed"} }, y1:{ type:"linear", position:"right", min:0, max:100, grid:{drawOnChartArea:false}, title:{display:true,text:"%"} } } } });
+  }
+}
+
+document.getElementById("generateBtn").addEventListener("click", () => {
+  if (!STATE.current){ setStatus("Bấm 'Bước 1' trước.", "error"); return; }
+  const wantFull = document.getElementById("wantFull").checked;
+  const wantSummary = document.getElementById("wantSummary").checked;
+  document.getElementById("fullWrap").style.display = wantFull ? "" : "none";
+  document.getElementById("summaryWrap").style.display = wantSummary ? "" : "none";
+  if (wantFull) renderReport(document.getElementById("fullReport"), true);
+  if (wantSummary) renderReport(document.getElementById("summaryReport"), false);
+  if (!wantFull && !wantSummary) setStatus("Chọn ít nhất 1 loại báo cáo (Full hoặc Summary).", "error");
+});
+
+function printReport(containerId){
+  document.querySelectorAll(".report-shell").forEach(el => el.classList.remove("print-target"));
+  document.getElementById(containerId).classList.add("print-target");
+  window.print();
+}
+
+/* ================================================================
+   PART 5 — .docx export (docx.js browser build, loaded from CDN)
+   ================================================================ */
+function canvasPngBytes(canvasId){
+  const c = document.getElementById(canvasId);
+  const dataUrl = c.toDataURL("image/png");
+  const base64 = dataUrl.split(",")[1];
+  const bin = atob(base64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return { bytes, width: c.width, height: c.height };
+}
+
+async function exportDocx(includeFull){
+  if (!window.docx){ alert("Thư viện docx chưa tải xong (cần internet để tải từ CDN lúc mở trang). Thử lại sau vài giây."); return; }
+  if (!STATE.current){ alert("Bấm 'Bước 1' và 'Bước 2' trước."); return; }
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, HeadingLevel, AlignmentType, WidthType, ShadingType, BorderStyle, ImageRun } = window.docx;
+
+  const NAVY="1E2761", ICE="CADCFC", GREY="F1EFE8", RED="A32D2D", GREEN="1E6B3C", TEXT_SEC="5F5E5A", WHITE="FFFFFF", BORDER_GREY="D0D7DE";
+  const RAG_COLORS = { green:{bg:"E6F4EA",text:"1E6B3C",label:"ON TRACK"}, amber:{bg:"FFF4E0",text:"946200",label:"NEEDS ATTENTION"}, red:{bg:"FBE9E7",text:"A32D2D",label:"AT RISK"} };
+  const PAGE_WIDTH_DXA = 12240, MARGIN_DXA = 720, CONTENT_WIDTH_DXA = PAGE_WIDTH_DXA - MARGIN_DXA*2;
+
+  function cellBorder(){ return { top:{style:BorderStyle.SINGLE,size:2,color:BORDER_GREY}, bottom:{style:BorderStyle.SINGLE,size:2,color:BORDER_GREY}, left:{style:BorderStyle.SINGLE,size:2,color:BORDER_GREY}, right:{style:BorderStyle.SINGLE,size:2,color:BORDER_GREY} }; }
+  function sectionTitle(t){ return new Paragraph({ heading:HeadingLevel.HEADING_1, spacing:{before:240,after:120}, children:[new TextRun({text:t,bold:true,color:NAVY,size:30})] }); }
+  function subsectionTitle(t){ return new Paragraph({ heading:HeadingLevel.HEADING_2, spacing:{before:200,after:100}, children:[new TextRun({text:t,bold:true,color:NAVY,size:24})] }); }
+  function bodyText(t,opts={}){ return new Paragraph({ spacing:{after:120}, children:[new TextRun({text:t,size:20,color:opts.color||"222222",italics:!!opts.italic})] }); }
+  function headerCell(t,w,align){ return new TableCell({ width:{size:w,type:WidthType.DXA}, borders:cellBorder(), shading:{type:ShadingType.CLEAR,fill:NAVY}, margins:{top:100,bottom:100,left:100,right:100}, children:[new Paragraph({alignment:align||AlignmentType.LEFT,children:[new TextRun({text:t,bold:true,size:17,color:WHITE})]})] }); }
+  function dataCell(t,w,opts={}){ return new TableCell({ width:{size:w,type:WidthType.DXA}, borders:cellBorder(), shading:opts.fill?{type:ShadingType.CLEAR,fill:opts.fill}:undefined, margins:{top:80,bottom:80,left:100,right:100}, columnSpan:opts.colSpan||undefined, children:[new Paragraph({alignment:opts.align||AlignmentType.LEFT,children:[new TextRun({text:String(t),size:17,bold:!!opts.bold,color:opts.color||"1A1A1A"})]})] }); }
+  function labelCell(t,w){ return new TableCell({ width:{size:w,type:WidthType.DXA}, borders:cellBorder(), margins:{top:80,bottom:80,left:100,right:100}, children:[new Paragraph({children:[new TextRun({text:t,bold:true,size:17,color:"1A1A1A"})]})] }); }
+  function statCard(label,value,sub,w){
+    const lines = Array.isArray(sub) ? sub : [sub];
+    return new TableCell({ width:{size:w,type:WidthType.DXA}, borders:cellBorder(), shading:{type:ShadingType.CLEAR,fill:GREY}, margins:{top:200,bottom:200,left:150,right:150}, children:[
+      new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:label,bold:true,size:18,color:TEXT_SEC})]}),
+      new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:80,after:80},children:[new TextRun({text:String(value),bold:true,size:44,color:NAVY})]}),
+      ...lines.map(l => { const runs=(l&&typeof l==="object"&&l.runs)?l.runs.map(r=>new TextRun({text:r.text,size:16,color:r.color||TEXT_SEC,bold:!!r.bold})):[new TextRun({text:l,size:16,color:TEXT_SEC})]; return new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:20},children:runs}); })
+    ]});
+  }
+  function kpiCard(label,value,rag,deltaInfo,w,caption){
+    const colors=RAG_COLORS[rag];
+    const children=[
+      new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:label,bold:true,size:18,color:TEXT_SEC})]}),
+      new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:80,after:(deltaInfo||caption)?40:80},children:[new TextRun({text:String(value),bold:true,size:44,color:colors.text})]}),
+    ];
+    if (deltaInfo) children.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:caption?40:0},children:[new TextRun({text:deltaInfo.text,size:15,color:deltaInfo.color,bold:true})]}));
+    if (caption) children.push(new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:caption,size:16,color:TEXT_SEC})]}));
+    return new TableCell({ width:{size:w,type:WidthType.DXA}, borders:cellBorder(), shading:{type:ShadingType.CLEAR,fill:colors.bg}, margins:{top:200,bottom:200,left:150,right:150}, children });
+  }
+  function healthBanner(rag,w){ const colors=RAG_COLORS[rag]; return new TableCell({ width:{size:w,type:WidthType.DXA}, borders:cellBorder(), shading:{type:ShadingType.CLEAR,fill:colors.bg}, margins:{top:140,bottom:140,left:150,right:150}, children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:"SPRINT HEALTH: "+colors.label,bold:true,size:24,color:colors.text})]})] }); }
+  function imageParagraphFromCanvas(canvasId, widthIn){
+    const c = document.getElementById(canvasId);
+    if (!c) return null;
+    const { bytes, width, height } = canvasPngBytes(canvasId);
+    const widthPx = Math.round(widthIn*96);
+    const heightPx = Math.round(widthPx*(height/width));
+    return new Paragraph({ alignment:AlignmentType.CENTER, spacing:{before:100,after:100}, children:[new ImageRun({ type:"png", data:bytes, transformation:{width:widthPx,height:heightPx} })] });
+  }
+
+  const rec = STATE.current;
+  const stats = rec.stats;
+  const d = computeDerived();
+  const status = document.getElementById("status").value;
+  const keyHighlight = document.getElementById("keyHighlight").value.trim() || "None";
+  const timelineIssue = document.getElementById("timelineIssue").value.trim() || "None";
+  const submissionDate = document.getElementById("submissionDate").value || new Date().toISOString().slice(0,10);
+  const preparedBy = document.getElementById("preparedBy").value.trim() || "Gerald Nguyen";
+  const period = (rec.start || "—") + " – " + (rec.end || "—");
+  const activity = filteredActivity();
+  const trendSeries = STATE.trendSeries || [];
+
+  // Re-render the requested variant fresh so its canvases exist right now (the two preview panels
+  // reuse canvas ids across regenerations, so we rebuild into an offscreen container to avoid
+  // fighting with whichever variant is currently on screen).
+  const off = document.createElement("div");
+  off.style.position="fixed"; off.style.left="-99999px"; off.style.top="0";
+  document.body.appendChild(off);
+  const built = renderReport(off, includeFull);
+  await new Promise(r => setTimeout(r, 50)); // let Chart.js paint (animation:false, but be safe)
+
+  const children = [];
+  children.push(new Paragraph({ heading:HeadingLevel.TITLE, children:[new TextRun({text: includeFull ? "Sprint Report" : "Sprint Summary", bold:true, color:NAVY, size:48})] }));
+  children.push(new Paragraph({ spacing:{before:100,after:200}, children:[
+    new TextRun({text:"Reporting Period: ",bold:true,size:20}), new TextRun({text:period,size:20}),
+    new TextRun({text:"     Prepared by: ",bold:true,size:20}), new TextRun({text:preparedBy,size:20}),
+    new TextRun({text:"     Submission Date: ",bold:true,size:20}), new TextRun({text:submissionDate,size:20}),
+  ] }));
+
+  children.push(sectionTitle("Sprint Overview"));
+  const ovW=[CONTENT_WIDTH_DXA/3,CONTENT_WIDTH_DXA/3,CONTENT_WIDTH_DXA/3];
+  children.push(new Table({ width:{size:CONTENT_WIDTH_DXA,type:WidthType.DXA}, columnWidths:ovW, rows:[
+    new TableRow({children:[headerCell("Sprint",ovW[0]),headerCell("Sprint Period",ovW[1]),headerCell("Status",ovW[2])]}),
+    new TableRow({children:[dataCell(rec.name,ovW[0],{bold:true}),dataCell(period,ovW[1]),dataCell(status,ovW[2])]}),
+    new TableRow({children:[labelCell("Key Highlight:",ovW[0]),dataCell(keyHighlight,ovW[1]+ovW[2],{colSpan:2})]}),
+    new TableRow({children:[labelCell("Timeline Issue:",ovW[0]),dataCell(timelineIssue,ovW[1]+ovW[2],{colSpan:2})]}),
+  ]}));
+
+  children.push(sectionTitle("Sprint Summary"));
+  children.push(subsectionTitle("1. Executive Summary"));
+  children.push(new Table({ width:{size:CONTENT_WIDTH_DXA,type:WidthType.DXA}, columnWidths:[CONTENT_WIDTH_DXA], rows:[new TableRow({children:[healthBanner(d.overallRag,CONTENT_WIDTH_DXA)]})] }));
+  children.push(new Paragraph({spacing:{before:80},children:[]}));
+  const kpiThirdW=Math.floor(CONTENT_WIDTH_DXA/3), kpiLastW=CONTENT_WIDTH_DXA-kpiThirdW*2;
+  children.push(new Table({ width:{size:CONTENT_WIDTH_DXA,type:WidthType.DXA}, columnWidths:[kpiThirdW,kpiThirdW,kpiLastW], rows:[new TableRow({children:[
+    kpiCard("Deployed to Production", d.deployedRate+"%", d.ragDeployed, d.deltaDeployed?{text:d.deltaDeployed.text,color:d.deltaDeployed.cls==="good"?GREEN:d.deltaDeployed.cls==="bad"?RED:TEXT_SEC}:null, kpiThirdW, stats.deployedCount+" ticket(s) are Closed, deployed to production"),
+    statCard("Carried Over to Next Sprint", d.carriedOverRate+"%", [
+      { runs:[{text: d.carriedOverCount+" ticket(s) not yet Closed", bold:true, color:NAVY}] },
+      { runs:[{text:"Pending Deployment (Resolved): "},{text: stats.pendingDeploymentCount+" tickets - "+d.pendingDeploymentPct+"%", bold:true}] },
+      { runs:[{text:"In Progress (Active / In Review): "},{text: stats.inProgressCount+" tickets - "+d.inProgressPct+"%", bold:true}] },
+      { runs:[{text:"Not Started (New): "},{text: stats.notStartedCount+" tickets - "+d.notStartedPct+"%", bold:true}] },
+    ], kpiThirdW),
+    kpiCard("Bug Ratio", stats.bugRatio+"%", d.ragBug, d.deltaBugRatio?{text:d.deltaBugRatio.text,color:d.deltaBugRatio.cls==="good"?GREEN:d.deltaBugRatio.cls==="bad"?RED:TEXT_SEC}:null, kpiLastW),
+  ]})]}));
+  children.push(new Paragraph({spacing:{before:200,after:80},children:[]}));
+
+  const ctW0=Math.floor(CONTENT_WIDTH_DXA*0.34), ctRest=CONTENT_WIDTH_DXA-ctW0, ctW1=Math.floor(ctRest/3), ctW=[ctW0,ctW1,ctW1,ctRest-ctW1*2];
+  const completedRows=[
+    {label:"Features Completed",closed:stats.featuresCompletedClosed,resolved:stats.featuresCompletedResolved},
+    {label:"Technical Debts Completed",closed:stats.techDebtCompletedClosed,resolved:stats.techDebtCompletedResolved},
+    {label:"Bugs Fixed",closed:stats.bugsFixedClosed,resolved:stats.bugsFixedResolved},
+  ];
+  const ctTotalClosed=completedRows.reduce((s,r)=>s+r.closed,0), ctTotalResolved=completedRows.reduce((s,r)=>s+r.resolved,0);
+  children.push(new Table({ width:{size:CONTENT_WIDTH_DXA,type:WidthType.DXA}, columnWidths:ctW, rows:[
+    new TableRow({tableHeader:true,children:[headerCell("Completed Work (by Type)",ctW[0]),headerCell("Closed",ctW[1],AlignmentType.CENTER),headerCell("Resolved",ctW[2],AlignmentType.CENTER),headerCell("Total",ctW[3],AlignmentType.CENTER)]}),
+    ...completedRows.map((r,idx)=>new TableRow({children:[dataCell(r.label,ctW[0],{fill:idx%2===1?"F7F8FA":undefined,bold:true}),dataCell(String(r.closed),ctW[1],{fill:idx%2===1?"F7F8FA":undefined,align:AlignmentType.CENTER}),dataCell(String(r.resolved),ctW[2],{fill:idx%2===1?"F7F8FA":undefined,align:AlignmentType.CENTER}),dataCell(String(r.closed+r.resolved),ctW[3],{fill:idx%2===1?"F7F8FA":undefined,align:AlignmentType.CENTER})]})),
+    new TableRow({children:[dataCell("Total",ctW[0],{fill:ICE,bold:true}),dataCell(String(ctTotalClosed),ctW[1],{fill:ICE,bold:true,align:AlignmentType.CENTER}),dataCell(String(ctTotalResolved),ctW[2],{fill:ICE,bold:true,align:AlignmentType.CENTER}),dataCell(String(ctTotalClosed+ctTotalResolved),ctW[3],{fill:ICE,bold:true,align:AlignmentType.CENTER})]}),
+  ]}));
+  children.push(bodyText("Closed = deployed to production. Resolved = completed on staging, awaiting deploy approval.", {italic:true,color:TEXT_SEC}));
+
+  const byTypeCanvas = built.canvases.find(c=>c.kind==="byType");
+  const openClosedCanvas = built.canvases.find(c=>c.kind==="openClosed");
+  if (byTypeCanvas || openClosedCanvas){
+    const halfW=Math.floor(CONTENT_WIDTH_DXA/2);
+    children.push(new Table({ width:{size:CONTENT_WIDTH_DXA,type:WidthType.DXA}, columnWidths:[halfW,CONTENT_WIDTH_DXA-halfW], rows:[new TableRow({children:[
+      new TableCell({width:{size:halfW,type:WidthType.DXA},borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE}},children:[imageParagraphFromCanvas(byTypeCanvas.id,3.5) || new Paragraph({text:""})]}),
+      new TableCell({width:{size:CONTENT_WIDTH_DXA-halfW,type:WidthType.DXA},borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE}},children:[imageParagraphFromCanvas(openClosedCanvas.id,3.0) || new Paragraph({text:""})]}),
+    ]})]}));
+  }
+
+  children.push(subsectionTitle("2. Activity by Developer"));
+  const workloadCanvas = built.canvases.find(c=>c.kind==="workload");
+  if (workloadCanvas){ const p = imageParagraphFromCanvas(workloadCanvas.id, 7.5); if (p) children.push(p); }
+  if (!activity.length){
+    children.push(bodyText("No activity for the selected assignees in this period.", {italic:true,color:TEXT_SEC}));
+  } else {
+    const devW=[2600,1200,1200,1200,1200], devTotalW=devW.reduce((a,b)=>a+b,0), scale=CONTENT_WIDTH_DXA/devTotalW, w=devW.map(x=>Math.floor(x*scale));
+    const rows=[new TableRow({tableHeader:true,children:[headerCell("Developer",w[0]),headerCell("Active",w[1],AlignmentType.CENTER),headerCell("Resolved",w[2],AlignmentType.CENTER),headerCell("Closed",w[3],AlignmentType.CENTER),headerCell("Effort",w[4],AlignmentType.CENTER)]})];
+    let tA=0,tR=0,tC=0,tE=0;
+    activity.forEach((dv,idx)=>{ tA+=dv.active; tR+=dv.resolved; tC+=dv.closed; tE+=dv.effort; const fill=idx%2===1?"F7F8FA":undefined;
+      rows.push(new TableRow({children:[dataCell(dv.name,w[0],{fill,bold:true}),dataCell(String(dv.active),w[1],{fill,align:AlignmentType.CENTER}),dataCell(String(dv.resolved),w[2],{fill,align:AlignmentType.CENTER}),dataCell(String(dv.closed),w[3],{fill,align:AlignmentType.CENTER}),dataCell(String(dv.effort),w[4],{fill,align:AlignmentType.CENTER})]})); });
+    rows.push(new TableRow({children:[dataCell("Totals",w[0],{bold:true,fill:ICE}),dataCell(String(tA),w[1],{bold:true,fill:ICE,align:AlignmentType.CENTER}),dataCell(String(tR),w[2],{bold:true,fill:ICE,align:AlignmentType.CENTER}),dataCell(String(tC),w[3],{bold:true,fill:ICE,align:AlignmentType.CENTER}),dataCell(String(tE),w[4],{bold:true,fill:ICE,align:AlignmentType.CENTER})]}));
+    children.push(new Table({ width:{size:CONTENT_WIDTH_DXA,type:WidthType.DXA}, columnWidths:w, rows }));
+  }
+
+  children.push(new Paragraph({spacing:{before:200},children:[]}));
+  children.push(subsectionTitle("3. Trend Across Sprints"));
+  if (trendSeries.length < 2){
+    children.push(bodyText("Not enough sprint history yet to chart a trend (need at least 2 sprints).", {italic:true,color:TEXT_SEC}));
+  } else {
+    children.push(bodyText("Velocity, deployed rate, and bug ratio across all "+trendSeries.length+" sprints on record.", {italic:true,color:TEXT_SEC}));
+    const trendCanvas = built.canvases.find(c=>c.kind==="trend");
+    if (trendCanvas){ const p = imageParagraphFromCanvas(trendCanvas.id, 7.5); if (p) children.push(p); }
+    const insights = computeTrendInsights(trendSeries);
+    if (insights){
+      children.push(new Paragraph({spacing:{before:140,after:40},children:[new TextRun({text:"Trend Insights",bold:true,size:19,color:NAVY})]}));
+      children.push(bodyText(insights.depSentence,{color:"333333"}));
+      children.push(bodyText(insights.bugSentence,{color:"333333"}));
+    }
+  }
+
+  if (includeFull){
+    children.push(sectionTitle("Sprint Details"));
+    const WI_COLS=[{label:"Work Item",width:3400},{label:"Type",width:900},{label:"State",width:900},{label:"Assigned To",width:1500},{label:"Start",width:900},{label:"Target",width:900},{label:"Changed",width:1100},{label:"Effort",width:700}];
+    function workItemTable(items){
+      if (!items.length) return new Paragraph({spacing:{after:160},children:[new TextRun({text:"No work items in this category for the selected filters.",italics:true,size:18,color:TEXT_SEC})]});
+      const sorted=items.slice().sort((a,b)=>a.id>b.id?1:-1);
+      const headerRow=new TableRow({cantSplit:true,tableHeader:true,children:WI_COLS.map(c=>headerCell(c.label,c.width))});
+      const rows=sorted.map((it,idx)=>{ const fill=idx%2===1?"F7F8FA":undefined; const assignee=it.assignee?it.assignee.replace(" - ONESECURE",""):"-"; const changed=it.changed?(it.changed+(it.changedTime?" "+it.changedTime:"")):"-";
+        return new TableRow({cantSplit:true,children:[
+          dataCell("#"+it.id+": "+it.title,WI_COLS[0].width,{fill,bold:true}), dataCell(it.type||"-",WI_COLS[1].width,{fill}), dataCell(it.state||"-",WI_COLS[2].width,{fill}), dataCell(assignee,WI_COLS[3].width,{fill}),
+          dataCell(it.start||"-",WI_COLS[4].width,{fill}), dataCell(it.target||"-",WI_COLS[5].width,{fill}), dataCell(changed,WI_COLS[6].width,{fill}), dataCell(typeof it.effort==="number"?String(it.effort):"-",WI_COLS[7].width,{fill,align:AlignmentType.CENTER}),
+        ]}); });
+      return new Table({ width:{size:CONTENT_WIDTH_DXA,type:WidthType.DXA}, columnWidths:WI_COLS.map(c=>c.width), rows:[headerRow,...rows] });
+    }
+    const overdue = stats.overdue || [];
+    children.push(subsectionTitle("1. Overdue Tasks ("+overdue.length+")"));
+    children.push(workItemTable(overdue));
+    children.push(new Paragraph({spacing:{before:200},children:[]}));
+    const activeItems = rec.items.filter(i=>OPEN_STATES.includes(i.state));
+    children.push(subsectionTitle("2. Active Work Items ("+activeItems.length+")"));
+    children.push(workItemTable(activeItems));
+    children.push(new Paragraph({spacing:{before:200},children:[]}));
+    const completedItems = rec.items.filter(i=>CLOSED_STATES.includes(i.state));
+    children.push(subsectionTitle("3. Completed Work Items ("+completedItems.length+")"));
+    children.push(workItemTable(completedItems));
+  }
+
+  const doc = new Document({ sections:[{ properties:{ page:{ size:{width:PAGE_WIDTH_DXA,height:15840}, margin:{top:MARGIN_DXA,bottom:MARGIN_DXA,left:MARGIN_DXA,right:MARGIN_DXA} } }, children }] });
+  const blob = await Packer.toBlob(doc);
+  document.body.removeChild(off);
+
+  const filename = rec.name + (includeFull ? "" : "-summary") + ".docx";
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+</script>
+</body>
+</html>

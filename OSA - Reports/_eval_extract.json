@@ -1,0 +1,534 @@
+{
+  "Huu Thai - ONESECURE": [
+    {
+      "sprint": "Sprint-20260608_20260619",
+      "start": "2026-06-08",
+      "end": "2026-06-19",
+      "asOf": "2026-06-19",
+      "totalAssigned": 22,
+      "closed": 5,
+      "resolved": 13,
+      "active": 2,
+      "newCnt": 0,
+      "inReview": 2,
+      "delivered": 18,
+      "effort": 0,
+      "byType": {
+        "Bug": {
+          "closed": 0,
+          "resolved": 7
+        },
+        "Issue": {
+          "closed": 5,
+          "resolved": 2
+        },
+        "Task": {
+          "closed": 0,
+          "resolved": 4
+        }
+      },
+      "onTime": 0,
+      "late": 5,
+      "closedWithTarget": 5,
+      "onTimeRate": 0,
+      "overdueOpen": 4,
+      "noTargetClosed": 0
+    },
+    {
+      "sprint": "Sprint-20260622_20260703",
+      "start": "2026-06-22",
+      "end": "2026-07-03",
+      "asOf": "2026-07-06",
+      "totalAssigned": 17,
+      "closed": 9,
+      "resolved": 7,
+      "active": 1,
+      "newCnt": 0,
+      "inReview": 0,
+      "delivered": 16,
+      "effort": 10,
+      "byType": {
+        "Feature": {
+          "closed": 1,
+          "resolved": 1
+        },
+        "Bug": {
+          "closed": 5,
+          "resolved": 3
+        },
+        "Issue": {
+          "closed": 3,
+          "resolved": 3
+        }
+      },
+      "onTime": 1,
+      "late": 6,
+      "closedWithTarget": 7,
+      "onTimeRate": 14,
+      "overdueOpen": 0,
+      "noTargetClosed": 2
+    },
+    {
+      "sprint": "Sprint-20260706_20260717",
+      "start": "2026-07-06",
+      "end": "2026-07-17",
+      "asOf": "2026-07-20",
+      "totalAssigned": 21,
+      "closed": 12,
+      "resolved": 2,
+      "active": 4,
+      "newCnt": 2,
+      "inReview": 1,
+      "delivered": 14,
+      "effort": 15,
+      "byType": {
+        "Task": {
+          "closed": 3,
+          "resolved": 1
+        },
+        "Feature": {
+          "closed": 2,
+          "resolved": 1
+        },
+        "Bug": {
+          "closed": 3,
+          "resolved": 0
+        },
+        "Issue": {
+          "closed": 4,
+          "resolved": 0
+        }
+      },
+      "onTime": 1,
+      "late": 10,
+      "closedWithTarget": 11,
+      "onTimeRate": 9,
+      "overdueOpen": 7,
+      "noTargetClosed": 1
+    },
+    {
+      "sprint": "Sprint-20260720_20260731",
+      "start": "2026-07-20",
+      "end": "2026-07-31",
+      "asOf": "2026-08-03",
+      "totalAssigned": 32,
+      "closed": 19,
+      "resolved": 9,
+      "active": 2,
+      "newCnt": 2,
+      "inReview": 0,
+      "delivered": 28,
+      "effort": 12,
+      "byType": {
+        "User Story": {
+          "closed": 1,
+          "resolved": 1
+        },
+        "Task": {
+          "closed": 8,
+          "resolved": 3
+        },
+        "Bug": {
+          "closed": 5,
+          "resolved": 4
+        },
+        "Issue": {
+          "closed": 3,
+          "resolved": 1
+        },
+        "Feature": {
+          "closed": 2,
+          "resolved": 0
+        }
+      },
+      "onTime": 0,
+      "late": 19,
+      "closedWithTarget": 19,
+      "onTimeRate": 0,
+      "overdueOpen": 3,
+      "noTargetClosed": 0
+    },
+    {
+      "sprint": "Sprint-20260803_20260814",
+      "start": "2026-08-03",
+      "end": "2026-08-14",
+      "asOf": "2026-08-14",
+      "totalAssigned": 38,
+      "closed": 31,
+      "resolved": 3,
+      "active": 3,
+      "newCnt": 0,
+      "inReview": 0,
+      "delivered": 34,
+      "effort": 14,
+      "byType": {
+        "Feature": {
+          "closed": 1,
+          "resolved": 1
+        },
+        "Issue": {
+          "closed": 6,
+          "resolved": 0
+        },
+        "User Story": {
+          "closed": 2,
+          "resolved": 0
+        },
+        "Task": {
+          "closed": 13,
+          "resolved": 2
+        },
+        "Bug": {
+          "closed": 9,
+          "resolved": 0
+        }
+      },
+      "onTime": 0,
+      "late": 24,
+      "closedWithTarget": 24,
+      "onTimeRate": 0,
+      "overdueOpen": 1,
+      "noTargetClosed": 7
+    },
+    {
+      "sprint": "Sprint-20260817_20260828",
+      "start": "2026-08-17",
+      "end": "2026-08-28",
+      "asOf": "2026-08-31",
+      "totalAssigned": 19,
+      "closed": 10,
+      "resolved": 4,
+      "active": 0,
+      "newCnt": 5,
+      "inReview": 0,
+      "delivered": 14,
+      "effort": 18,
+      "byType": {
+        "Issue": {
+          "closed": 5,
+          "resolved": 1
+        },
+        "Feature": {
+          "closed": 1,
+          "resolved": 0
+        },
+        "Task": {
+          "closed": 4,
+          "resolved": 2
+        },
+        "User Story": {
+          "closed": 0,
+          "resolved": 1
+        }
+      },
+      "onTime": 0,
+      "late": 9,
+      "closedWithTarget": 9,
+      "onTimeRate": 0,
+      "overdueOpen": 0,
+      "noTargetClosed": 1
+    },
+    {
+      "sprint": "Sprint-20260831_20260911",
+      "start": "2026-08-31",
+      "end": "2026-09-11",
+      "asOf": "2026-09-14",
+      "totalAssigned": 16,
+      "closed": 4,
+      "resolved": 6,
+      "active": 3,
+      "newCnt": 2,
+      "inReview": 1,
+      "delivered": 10,
+      "effort": 20,
+      "byType": {
+        "User Story": {
+          "closed": 1,
+          "resolved": 0
+        },
+        "Task": {
+          "closed": 2,
+          "resolved": 4
+        },
+        "Issue": {
+          "closed": 1,
+          "resolved": 1
+        },
+        "Feature": {
+          "closed": 0,
+          "resolved": 1
+        }
+      },
+      "onTime": 0,
+      "late": 4,
+      "closedWithTarget": 4,
+      "onTimeRate": 0,
+      "overdueOpen": 5,
+      "noTargetClosed": 0
+    }
+  ],
+  "Alec Van Hai Son - ONESECURE": [
+    {
+      "sprint": "Sprint-20260608_20260619",
+      "start": "2026-06-08",
+      "end": "2026-06-19",
+      "asOf": "2026-06-19",
+      "totalAssigned": 8,
+      "closed": 1,
+      "resolved": 4,
+      "active": 3,
+      "newCnt": 0,
+      "inReview": 0,
+      "delivered": 5,
+      "effort": 0,
+      "byType": {
+        "Task": {
+          "closed": 0,
+          "resolved": 3
+        },
+        "Epic": {
+          "closed": 1,
+          "resolved": 0
+        },
+        "Bug": {
+          "closed": 0,
+          "resolved": 1
+        }
+      },
+      "onTime": 1,
+      "late": 0,
+      "closedWithTarget": 1,
+      "onTimeRate": 100,
+      "overdueOpen": 3,
+      "noTargetClosed": 0
+    },
+    {
+      "sprint": "Sprint-20260622_20260703",
+      "start": "2026-06-22",
+      "end": "2026-07-03",
+      "asOf": "2026-07-06",
+      "totalAssigned": 12,
+      "closed": 2,
+      "resolved": 2,
+      "active": 5,
+      "newCnt": 3,
+      "inReview": 0,
+      "delivered": 4,
+      "effort": 0,
+      "byType": {
+        "Bug": {
+          "closed": 2,
+          "resolved": 1
+        },
+        "Task": {
+          "closed": 0,
+          "resolved": 1
+        }
+      },
+      "onTime": 0,
+      "late": 2,
+      "closedWithTarget": 2,
+      "onTimeRate": 0,
+      "overdueOpen": 2,
+      "noTargetClosed": 0
+    },
+    {
+      "sprint": "Sprint-20260706_20260717",
+      "start": "2026-07-06",
+      "end": "2026-07-17",
+      "asOf": "2026-07-20",
+      "totalAssigned": 15,
+      "closed": 9,
+      "resolved": 2,
+      "active": 4,
+      "newCnt": 0,
+      "inReview": 0,
+      "delivered": 11,
+      "effort": 4,
+      "byType": {
+        "Issue": {
+          "closed": 3,
+          "resolved": 0
+        },
+        "Bug": {
+          "closed": 1,
+          "resolved": 2
+        },
+        "Feature": {
+          "closed": 1,
+          "resolved": 0
+        },
+        "Task": {
+          "closed": 4,
+          "resolved": 0
+        }
+      },
+      "onTime": 2,
+      "late": 4,
+      "closedWithTarget": 6,
+      "onTimeRate": 33,
+      "overdueOpen": 1,
+      "noTargetClosed": 3
+    },
+    {
+      "sprint": "Sprint-20260720_20260731",
+      "start": "2026-07-20",
+      "end": "2026-07-31",
+      "asOf": "2026-08-03",
+      "totalAssigned": 20,
+      "closed": 16,
+      "resolved": 2,
+      "active": 2,
+      "newCnt": 0,
+      "inReview": 0,
+      "delivered": 18,
+      "effort": 4,
+      "byType": {
+        "Feature": {
+          "closed": 2,
+          "resolved": 0
+        },
+        "Task": {
+          "closed": 6,
+          "resolved": 0
+        },
+        "Bug": {
+          "closed": 5,
+          "resolved": 2
+        },
+        "Issue": {
+          "closed": 3,
+          "resolved": 0
+        }
+      },
+      "onTime": 1,
+      "late": 11,
+      "closedWithTarget": 12,
+      "onTimeRate": 8,
+      "overdueOpen": 0,
+      "noTargetClosed": 4
+    },
+    {
+      "sprint": "Sprint-20260803_20260814",
+      "start": "2026-08-03",
+      "end": "2026-08-14",
+      "asOf": "2026-08-14",
+      "totalAssigned": 24,
+      "closed": 21,
+      "resolved": 3,
+      "active": 0,
+      "newCnt": 0,
+      "inReview": 0,
+      "delivered": 24,
+      "effort": 5,
+      "byType": {
+        "Bug": {
+          "closed": 9,
+          "resolved": 1
+        },
+        "Issue": {
+          "closed": 6,
+          "resolved": 2
+        },
+        "Feature": {
+          "closed": 2,
+          "resolved": 0
+        },
+        "Task": {
+          "closed": 4,
+          "resolved": 0
+        }
+      },
+      "onTime": 0,
+      "late": 11,
+      "closedWithTarget": 11,
+      "onTimeRate": 0,
+      "overdueOpen": 0,
+      "noTargetClosed": 10
+    },
+    {
+      "sprint": "Sprint-20260817_20260828",
+      "start": "2026-08-17",
+      "end": "2026-08-28",
+      "asOf": "2026-08-31",
+      "totalAssigned": 110,
+      "closed": 102,
+      "resolved": 6,
+      "active": 0,
+      "newCnt": 2,
+      "inReview": 0,
+      "delivered": 108,
+      "effort": 122,
+      "byType": {
+        "Task": {
+          "closed": 60,
+          "resolved": 5
+        },
+        "Issue": {
+          "closed": 6,
+          "resolved": 0
+        },
+        "Feature": {
+          "closed": 16,
+          "resolved": 0
+        },
+        "Bug": {
+          "closed": 19,
+          "resolved": 0
+        },
+        "Epic": {
+          "closed": 1,
+          "resolved": 0
+        },
+        "User Story": {
+          "closed": 0,
+          "resolved": 1
+        }
+      },
+      "onTime": 2,
+      "late": 11,
+      "closedWithTarget": 13,
+      "onTimeRate": 15,
+      "overdueOpen": 1,
+      "noTargetClosed": 89
+    },
+    {
+      "sprint": "Sprint-20260831_20260911",
+      "start": "2026-08-31",
+      "end": "2026-09-11",
+      "asOf": "2026-09-14",
+      "totalAssigned": 17,
+      "closed": 7,
+      "resolved": 5,
+      "active": 3,
+      "newCnt": 1,
+      "inReview": 1,
+      "delivered": 12,
+      "effort": 18,
+      "byType": {
+        "User Story": {
+          "closed": 0,
+          "resolved": 1
+        },
+        "Task": {
+          "closed": 2,
+          "resolved": 4
+        },
+        "Bug": {
+          "closed": 3,
+          "resolved": 0
+        },
+        "Issue": {
+          "closed": 2,
+          "resolved": 0
+        }
+      },
+      "onTime": 0,
+      "late": 3,
+      "closedWithTarget": 3,
+      "onTimeRate": 0,
+      "overdueOpen": 5,
+      "noTargetClosed": 4
+    }
+  ]
+}

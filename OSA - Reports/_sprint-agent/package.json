@@ -1,0 +1,13 @@
+{
+  "name": "sprint-report-agent-engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Headless parsing/aggregation + report-generation engine for Webyith daily sprint reports (PDF/DOCX/XLSX/HTML). Run `npm install` once, then `node sprint_engine.js ingest <sprint-folder>` followed by `node build_sprint_report_docx.js <sprint-folder>/_sprint_data.json <output.docx>`.",
+  "dependencies": {
+    "docx": "^9.0.0",
+    "jsdom": "^30.0.1",
+    "mammoth": "^1.6.0",
+    "pdfjs-dist": "^3.11.174",
+    "xlsx": "^0.18.5"
+  }
+}
